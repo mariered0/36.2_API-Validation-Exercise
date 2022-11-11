@@ -5,7 +5,8 @@ const router = new express.Router();
 const ExpressError = require("../expressError");
 
 const jsonschema = require("jsonschema");
-const bookSchema = require("../schemas/bookSchema.json")
+const bookSchemaCreate = require("../schemas/bookSchemaCreate.json")
+const bookSchemaUpdate = require("../schemas/bookSchemaUpdate.json")
 
 /** GET / => {books: [book, ...]}  */
 
@@ -35,13 +36,13 @@ router.post("/", async function (req, res, next) {
   try {
 
     //Validate req.body against the book schema:
-    const result = jsonschema.validate(req.body, bookSchema);
+    const result = jsonschema.validate(req.body, bookSchemaCreate);
 
     //if it's not valid, collect all errors in an array
     if (!result.valid) {
       const listOfErrors = result.errors.map(e => e.stack);
       const err = new ExpressError(listOfErrors, 400);
-      console.log('It was valied!');
+      console.log('It is invalid!');
       return next(err);
     }
     //if it's valid, create new book data.
@@ -56,7 +57,10 @@ router.post("/", async function (req, res, next) {
 
 router.put("/:isbn", async function (req, res, next) {
   try {
-    const result = jsonschema.validate(req.body, bookSchema);
+    if ('isbn' in req.body) {
+      return next({ status: 400, message: "Not allowed"})
+    }
+    const result = jsonschema.validate(req.body, bookSchemaUpdate);
 
     if (!result.valid) {
       const listOfErrors = result.errors.map(e => e.stack);
